@@ -9,11 +9,10 @@ import axios from 'axios'
 import io from 'socket.io-client'
 
 const socket = io.connect('https://live-chat-messaging2.herokuapp.com',{
-  upgrade: false,
-  transports: ['polling'],
-  'reconnection': true,
-  'reconnectionDelay': 500,
-  'reconnectionAttempts': 10
+  "force new connection" : true,
+  "reconnectionAttempts": "Infinity", 
+  "timeout" : 10000,                  
+  "transports" : ["websocket"]
 })
 
 function App() {
