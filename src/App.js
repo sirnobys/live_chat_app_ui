@@ -10,7 +10,7 @@ import io from 'socket.io-client'
 
 const socket = io.connect('https://live-chat-messaging2.herokuapp.com',{
   upgrade: false,
-  transports: ['websocket'],
+  transports: ['polling'],
   'reconnection': true,
   'reconnectionDelay': 500,
   'reconnectionAttempts': 10
