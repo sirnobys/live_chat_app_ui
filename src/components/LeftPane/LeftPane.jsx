@@ -20,9 +20,9 @@ function TabPanel(props) {
       {...other}
     >
       {value === index && (
-        <Box sx={{ p: 3 }}>
-          <Typography>{children}</Typography>
-        </Box>
+        <div>
+          <span>{children}</span>
+        </div>
       )}
     </div>
   );
@@ -49,23 +49,23 @@ const getUser = (user) => {
         backgroundColor: "white",
       }}
     >
-      <div class="chat-header clearfix">
-        <div class="row">
-          <div class="col-lg-6">
+      <div className="chat-header clearfix">
+        <div className="row">
+          <div className="col-lg-6">
             <a href="#">
               <img src={user?.picture} alt="avatar" />
             </a>
             <span className="float-right">
               <Logout />
             </span>
-            <div class="chat-about">
-              <h6 class="mt-3" style={{ fontSize: "10px" }}>
+            <div className="chat-about">
+              <h6 className="mt-3" style={{ fontSize: "10px" }}>
                 {user.display_name}<br/>
                 {user.email.split("@")[0]}
               </h6>
             </div>
           </div>
-          <div class="col-lg-6"></div>
+          <div className="col-lg-6"></div>
         </div>
       </div>
     </div>
@@ -75,8 +75,8 @@ const getUser = (user) => {
 const drawerWidth = 240;
 
 export default function LeftPane() {
-  const { socket, block,myBlockList,otherBlockList, setOtherBlockList, setBlockList, messages, user, setChatInfo, activeUsers, users } = useContext(FormContext);
-  // let myBlockList={}
+  const { socket, block, myBlockList, otherBlockList, setBlockList, messages, user, setChatInfo, activeUsers, users } = useContext(FormContext);
+  // let blockList={}
   // let otherBlockList={}
   const name = `${user.name.split(" ")[0]} ${user.family_name}`;
   const filterUser = activeUsers.filter(e=>e.email!==user.email)
@@ -86,45 +86,27 @@ export default function LeftPane() {
     socket.emit("activate_user", user)
   },[])
   
-  const handleBlock=()=>{
-    console.log(block);
-    block.forEach(e=>{
-      if(myBlockList[e.user]){
-        myBlockList[e.user]= myBlockList[e.user]+"/"+e.blocked_user
-      }
-      else{
-        myBlockList[e.user]=e.blocked_user
-      }
 
-      if(otherBlockList[e.blocked_user]){
-        otherBlockList[e.blocked_user]= otherBlockList[e.blocked_user]+"/"+e.user
-      }
-      else{
-        otherBlockList[e.blocked_user]=e.user
-      }
-    })
-    
-  }
-  
-  handleBlock()
   
   const email = () => {
+    console.log("other",otherBlockList);
+    console.log("user",users);
     return (
       <div>
-        <div class="row clearfix">
-          <div class="col-lg-12">
-            <div class="card">
-              <div id="plist" class="people-list">
-                <ul class="list-unstyled chat-list mt-2 mb-0">
-                  {users.map((e,i) => (
+        <div className="row clearfix">
+          <div className="col-lg-12">
+            <div className="card">
+              <div id="plist" className="people-list">
+                <ul className="list-unstyled chat-list mt-2 mb-0">
+                  {users?.map((e,i) => (
                     e.email !==user.email && !otherBlockList[user.email]?.split("/").includes(e.email) &&
-                    <li key={i} class="clearfix" onClick={() => setChatInfo(e)}>
+                    <li key={i} className="clearfix" onClick={() => setChatInfo(e)}>
                       <img
                         src={e.picture}
                         alt="avatar"
                       />
-                      <div class="about">
-                        <div class="name mt-3">{e.name}</div>
+                      <div className="about">
+                        <div className="name mt-3">{e.name}</div>
                       </div>
                     </li>
                   ))}
@@ -138,24 +120,25 @@ export default function LeftPane() {
   };
 
   const online_users = () => {
+    console.log(activeUsers);
     return (
       <div>
-        <div class="row clearfix">
-          <div class="col-lg-12">
-            <div class="card">
-              <div id="plist" class="people-list">
-                <ul class="list-unstyled chat-list mt-2 mb-0">
+        <div className="row clearfix">
+          <div className="col-lg-12">
+            <div className="card">
+              <div id="plist" className="people-list">
+                <ul className="list-unstyled chat-list mt-2 mb-0">
                 {filterUser.length>0? filterUser.map((e) => (
                   !otherBlockList[user.email]?.split("/").includes(e.email) &&
-                    <li class="clearfix" onClick={() => setChatInfo(e)}>
+                    <li className="clearfix" onClick={() => setChatInfo(e)}>
                       <img
                         src={e.picture}
                         alt="avatar"
                       />
-                      <div class="about">
-                        <div class="name">{e.name}</div>
-                        <div class="status">
-                          <i class="fa fa-circle online"></i> online{" "}
+                      <div className="about">
+                        <div className="name">{e.name}</div>
+                        <div className="status">
+                          <i className="fa fa-circle online"></i> online{" "}
                         </div>
                       </div>
                     </li>
@@ -176,8 +159,8 @@ export default function LeftPane() {
     };
 
     return (
-      <Box sx={{ width: "100%" }}>
-        <Box>
+      <div sx={{ width: "100%" }}>
+        <div>
           <Tabs
             value={value}
             onChange={handleChange}
@@ -186,14 +169,14 @@ export default function LeftPane() {
             <Tab label="Email" {...a11yProps(0)} />
             <Tab label="Online Status" {...a11yProps(1)} />
           </Tabs>
-        </Box>
+        </div>
         <TabPanel value={value} index={0}>
           {email()}
         </TabPanel>
         <TabPanel value={value} index={1}>
           {online_users()}
         </TabPanel>
-      </Box>
+      </div>
     );
   }
 

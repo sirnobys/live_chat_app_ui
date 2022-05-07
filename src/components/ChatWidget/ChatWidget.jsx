@@ -20,23 +20,27 @@ export default function ChatWdget() {
     myBlockList,
     otherBlockList,
   } = useContext(FormContext);
+  
   const messagesEndRef = React.useRef(null);
-
+  const blockInfo={
+    user: user.email,
+    blocked_user: chatInfo.email,
+  }
+  let room = [user.email, chatInfo.email].sort();
+  const [change, setChange]=React.useState(false)
+  room = room.join("|")
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-console.log(myBlockList);
   React.useEffect(() => {
-    console.log(messages);
     scrollToBottom();
-  }, [messages]);
+  }, [messages,[]]);
+
 
   if (!chatInfo.name) {
     return "open message";
   }
-  let room = [user.email, chatInfo.email].sort();
-  room = room.join("|")
   const submit = (e) => {
     e.preventDefault();
     socket.emit("send_message", {
@@ -49,18 +53,14 @@ console.log(myBlockList);
 
     setMessage("");
   };
-
+  
   const blockUser=()=>{
-    socket.emit("block_user", {
-      user: user.email,
-      blocked_user: chatInfo.email,
-    });
+    socket.emit("block_user", blockInfo);
+    setChange(myBlockList[user.email]?.split("/").includes(chatInfo.email))
   }
   const unBlockUser=()=>{
-    socket.emit("unblock_user", {
-      user: user.email,
-      blocked_user: chatInfo.email,
-    });
+    setChange(!myBlockList[user.email]?.split("/").includes(chatInfo.email))
+    socket.emit("unblock_user", blockInfo);
   }
   const handleChange = (e) => {
     setMessage(e.target.value);
@@ -105,7 +105,7 @@ console.log(myBlockList);
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <div class="row">
+      <div className="row">
         <div
           className="chat col-lg-12"
           style={{
@@ -115,21 +115,21 @@ console.log(myBlockList);
             backgroundColor: "white",
           }}
         >
-          <div class="chat-header clearfix">
-            <div class="row">
-              <div class="col-lg-12">
+          <div className="chat-header clearfix">
+            <div className="row">
+              <div className="col-lg-12">
                 <a href="javascript:void(0);">
                   <img src={chatInfo?.picture} alt="avatar" />
                 </a>
-                <div class="chat-about">
+                <div className="chat-about">
                   {
                     
-                      !myBlockList[user.email]?.split("/").includes(chatInfo.email)?
-                      <Button variant="contained" className="float-right" size="small" color="warning" onClick={()=>blockUser()}>Block</Button>
+                      change?
+                      <Button variant="contained" className="float-right" size="small" color="warning" onClick={()=>[blockUser()]}>Block</Button>
                     :
-                  <Button variant="contained" className="float-right" size="small" color="warning" onClick={()=>unBlockUser()}>Unblock</Button>
+                  <Button variant="contained" className="float-right" size="small" color="warning" onClick={()=>[unBlockUser()]}>Unblock</Button>
                   }
-                  <h6 class="m-b-0">{chatInfo?.name}</h6>
+                  <h6 className="m-b-0">{chatInfo?.name}</h6>
                 </div>
               </div>
             </div>
@@ -138,28 +138,28 @@ console.log(myBlockList);
       </div>
       {
         <div>
-          <div class="row clearfix">
-            <div class="col-lg-12">
-              <div class="card">
-                <div class="chat">
-                  <div class="chat-history">
-                    <ul class="m-b-0">
-                      {messages.map(
+          <div className="row clearfix">
+            <div className="col-lg-12">
+              <div className="card">
+                <div className="chat">
+                  <div className="chat-history">
+                    <ul className="m-b-0">
+                      {messages?.map(
                         (e) =>
-                          e.room.includes(room) && (
-                            <li class="clearfix">
+                          e.room?.includes(room) && (
+                            <li className="clearfix">
                               <div
                                 align={
                                   e.sender == user.email ? "right" : "left"
                                 }
-                                class="message-data"
+                                className="message-data"
                               >
-                                <span class="message-data-time">
+                                <span className="message-data-time">
                                   10:10 AM, Today
                                 </span>
                               </div>
                               <div
-                                class={
+                                className={
                                   e.sender == user.email
                                     ? "message other-message float-right"
                                     : "message my-message"
@@ -171,19 +171,19 @@ console.log(myBlockList);
                           )
                       )}
 
-                      {/* <li class="clearfix">
-                      <div class="message-data">
-                        <span class="message-data-time">10:12 AM, Today</span>
+                      {/* <li className="clearfix">
+                      <div className="message-data">
+                        <span className="message-data-time">10:12 AM, Today</span>
                       </div>
-                      <div class="message my-message">
+                      <div className="message my-message">
                         Are we meeting today?
                       </div>
                     </li>
-                    <li class="clearfix">
-                      <div class="message-data">
-                        <span class="message-data-time">10:15 AM, Today</span>
+                    <li className="clearfix">
+                      <div className="message-data">
+                        <span className="message-data-time">10:15 AM, Today</span>
                       </div>
-                      <div class="message my-message">
+                      <div className="message my-message">
                         Project has been already finished and I have results to
                         show you.
                       </div>

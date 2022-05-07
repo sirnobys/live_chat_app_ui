@@ -8,7 +8,14 @@ import { FormContext } from './context/FormContext';
 import axios from 'axios'
 import io from 'socket.io-client'
 
-const socket = io('https://live-chat-messaging.herokuapp.com')
+const socket = io.connect('https://live-chat-messaging2.herokuapp.com',{
+  upgrade: false,
+  transports: ['websocket'],
+  path: '/socket.io-client',
+  'reconnection': true,
+  'reconnectionDelay': 500,
+  'reconnectionAttempts': 10
+})
 
 function App() {
   const [messages, setMessages] = React.useState([])
@@ -16,37 +23,54 @@ function App() {
   const [room, setRoom] = React.useState("")
   const [block, setBlock] = React.useState([])
   const [blocked, setBlocked] = React.useState(false)
-  let myBlockList={}
-  let otherBlockList ={}
   const [users, setUsers] = React.useState([])
   const [email, setEmail] = React.useState("")
   const [chatInfo, setChatInfo] = React.useState({})
   const [activeUsers, setActiveUsers] = React.useState([])
-  const [isBlocked, setIsBlocked] = React.useState(false)
-
+  const [myBlockList, setMyBlockList] = React.useState({})
+  const [otherBlockList, setOtherBlockList] = React.useState({})
+  let holdBlockList={}
+  let holdOtherBlocklist ={}
 
   const { user } = useAuth0()
-  const host = 'https://live-chat-messaging.herokuapp.com'
-  const port = '25377'
-  const url = host
+  const host = 'https://localhost:5000'
 
-  const fetchData = (url) => {
-    axios.get(url).then((res) => {
-      console.log(res);
-      setUsers(res.data.users)
-      setMessages(res.data.messages)
-      setBlock(res.data.block)
+  const handleBlock=(block)=>{
+    console.log(block);
+    block?.forEach(e=>{
+      if(holdBlockList[e.user]){
+        holdBlockList[e.user]= holdBlockList[e.user]+"/"+e.blocked_user
+      }
+      else{
+        holdBlockList[e.user]=e.blocked_user
+      }
+      if(holdOtherBlocklist[e.blocked_user]){
+        holdOtherBlocklist[e.blocked_user]= holdOtherBlocklist[e.blocked_user]+"/"+e.user
+      }
+      else{
+        holdOtherBlocklist[e.blocked_user]=e.user
+      }
     })
+    setMyBlockList(holdBlockList)
+    setOtherBlockList(holdOtherBlocklist)
+    
   }
 
   function setSocketListeners() {
+    socket.on('fetched', (data) => {
+      setUsers(data.users)
+      setMessages(data.messages)
+      setBlock(data.block)
+      handleBlock(data.block)
+    })
+
     socket.on('message_sent', (data) => {
-      data['received'] = Date.now()
       setMessages(data)
-      console.log('message',data);
     })
 
     socket.on('user_activated', (data) => {
+      console.log(data);
+      console.log("activated");
       setActiveUsers(Object.values(data))
     })
 
@@ -55,39 +79,26 @@ function App() {
     })
 
     socket.on('user_blocked', (data) => {
-      setIsBlocked(true)
-      console.log(data);
-      console.log(block);
+      setMyBlockList(data)
+      socket.emit("fetch");
     })
 
     socket.on('user_unblocked', (data) => {
-      fetchData(url)
-      console.log(block);
+      socket.emit("fetch");
     })
 
-    socket.on('error', (data) => {
-      console.log("error", data);
-    })
-    socket.on('connect_failed', (data) => {
-      console.log("conect_failed",data);
-    })
-
-    socket.on('connect', (res) => {
-      console.log("conect",res);
+    socket.on('connect', () => {
+      socket.emit("fetch");
     })
   }
 
   React.useEffect(() => {
-    fetchData(url)
-    setSocketListeners()
+    
   }, [])
 
-  React.useEffect(() => {
-    fetchData(url)
-  }, [isBlocked])
-
   return (
-    <FormContext.Provider value={{ users,blocked,setBlocked, myBlockList, otherBlockList,block, room, messages, setMessages, chatInfo, setChatInfo, user, socket, email, setEmail, message, setMessage, activeUsers, setActiveUsers }}>
+    <FormContext.Provider value={{ users,blocked,setBlocked,setMyBlockList, myBlockList, otherBlockList,block, room, messages, setMessages, chatInfo, setChatInfo, user, socket, email, setEmail, message, setMessage, activeUsers, setActiveUsers }}>
+      {setSocketListeners()}
       <div>
         {user ? <Main />  : <Login />}
       </div>
