@@ -89,8 +89,8 @@ export default function LeftPane() {
 
   
   const email = () => {
-    console.log("other",otherBlockList);
-    console.log("user",users);
+    // console.log("other",otherBlockList);
+    // console.log("user",users);
     return (
       <div>
         <div className="row clearfix">
@@ -99,7 +99,7 @@ export default function LeftPane() {
               <div id="plist" className="people-list">
                 <ul className="list-unstyled chat-list mt-2 mb-0">
                   {users?.map((e,i) => (
-                    e.email !==user.email && !otherBlockList[user.email]?.split("/").includes(e.email) &&
+                    e.email !==user.email && 
                     <li key={i} className="clearfix" onClick={() => setChatInfo(e)}>
                       <img
                         src={e.picture}
@@ -120,7 +120,7 @@ export default function LeftPane() {
   };
 
   const online_users = () => {
-    console.log(activeUsers);
+    // console.log(activeUsers);
     return (
       <div>
         <div className="row clearfix">

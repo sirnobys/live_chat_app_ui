@@ -31,10 +31,9 @@ function App() {
   let holdOtherBlocklist ={}
 
   const { user } = useAuth0()
-  const host = 'https://localhost:5000'
+  // const host = 'https://localhost:5000'
 
   const handleBlock=(block)=>{
-    console.log(block);
     block?.forEach(e=>{
       if(holdBlockList[e.user]){
         holdBlockList[e.user]= holdBlockList[e.user]+"/"+e.blocked_user
@@ -62,13 +61,11 @@ function App() {
       handleBlock(data.block)
     })
 
-    socket.on('message_sent', (data) => {
-      setMessages(data)
-    })
+    // socket.on('message_sent', (data) => {
+    //   setMessages(data)
+    // })
 
     socket.on('user_activated', (data) => {
-      console.log(data);
-      console.log("activated");
       setActiveUsers(Object.values(data))
     })
 
@@ -77,12 +74,13 @@ function App() {
     })
 
     socket.on('user_blocked', (data) => {
-      setMyBlockList(data)
-      socket.emit("fetch");
+      setBlock(data)
+      handleBlock(data)
     })
 
     socket.on('user_unblocked', (data) => {
-      socket.emit("fetch");
+      setBlock(data)
+      handleBlock(data)
     })
 
     socket.on('connect', () => {
@@ -90,9 +88,7 @@ function App() {
     })
   }
 
-  React.useEffect(() => {
-    
-  }, [])
+
 
   return (
     <FormContext.Provider value={{ users,blocked,setBlocked,setMyBlockList, myBlockList, otherBlockList,block, room, messages, setMessages, chatInfo, setChatInfo, user, socket, email, setEmail, message, setMessage, activeUsers, setActiveUsers }}>

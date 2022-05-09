@@ -19,28 +19,41 @@ export default function ChatWdget() {
     data,
     myBlockList,
     otherBlockList,
+    setMessages,
   } = useContext(FormContext);
-  
+
   const messagesEndRef = React.useRef(null);
-  const blockInfo={
+  const blockInfo = {
     user: user.email,
     blocked_user: chatInfo.email,
-  }
+  };
   let room = [user.email, chatInfo.email].sort();
-  const [change, setChange]=React.useState(false)
-  room = room.join("|")
+  const [change, setChange] = React.useState(false);
+  room = room.join("|");
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  React.useEffect(() => {
-    scrollToBottom();
-  }, [messages,[]]);
+  const listener = () => {
+    socket.on("message_sent", (data) => {
+      console.log(data);
+      setMessages(data);
+    });
+  };
 
+  React.useEffect(
+    () => {
+      listener();
+      scrollToBottom();
+    },
+    [messages],
+    []
+  );
 
   if (!chatInfo.name) {
     return "open message";
   }
+
   const submit = (e) => {
     e.preventDefault();
     socket.emit("send_message", {
@@ -53,17 +66,22 @@ export default function ChatWdget() {
 
     setMessage("");
   };
-  
-  const blockUser=()=>{
+
+  const blockUser = () => {
     socket.emit("block_user", blockInfo);
-    setChange(myBlockList[user.email]?.split("/").includes(chatInfo.email))
-  }
-  const unBlockUser=()=>{
-    setChange(!myBlockList[user.email]?.split("/").includes(chatInfo.email))
+    // setChange(!myBlockList[user.email]?.split("/").includes(chatInfo.email))
+  };
+  const unBlockUser = () => {
+    // setChange(myBlockList[user.email]?.split("/").includes(chatInfo.email))
     socket.emit("unblock_user", blockInfo);
-  }
+  };
   const handleChange = (e) => {
     setMessage(e.target.value);
+  };
+
+  const getTIme = (timestamp) => {
+    var date = new Date(timestamp);
+    return date.toGMTString()
   };
 
   const messageBox = () => {
@@ -83,17 +101,19 @@ export default function ChatWdget() {
             style={{ width: "50%" }}
             id="outlined-textarea"
             label="Type message"
-            multiline
             required
             value={message}
             onChange={(e) => handleChange(e)}
           />
-          
+
           <Button
             className="mt-2 m-2"
             variant="contained"
             endIcon={<SendIcon />}
             type="submit"
+            disabled={otherBlockList[user.email]
+              ?.split("/")
+              .includes(chatInfo.email)}
             // onClick={() => submit()}
           >
             Send
@@ -122,13 +142,29 @@ export default function ChatWdget() {
                   <img src={chatInfo?.picture} alt="avatar" />
                 </a>
                 <div className="chat-about">
-                  {
-                    
-                      change?
-                      <Button variant="contained" className="float-right" size="small" color="warning" onClick={()=>[blockUser()]}>Block</Button>
-                    :
-                  <Button variant="contained" className="float-right" size="small" color="warning" onClick={()=>[unBlockUser()]}>Unblock</Button>
-                  }
+                  {!myBlockList[user.email]
+                    ?.split("/")
+                    .includes(chatInfo.email) ? (
+                    <Button
+                      variant="contained"
+                      className="float-right"
+                      size="small"
+                      color="warning"
+                      onClick={() => [blockUser()]}
+                    >
+                      Block
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      className="float-right"
+                      size="small"
+                      color="warning"
+                      onClick={() => [unBlockUser()]}
+                    >
+                      Unblock
+                    </Button>
+                  )}
                   <h6 className="m-b-0">{chatInfo?.name}</h6>
                 </div>
               </div>
@@ -154,9 +190,9 @@ export default function ChatWdget() {
                                 }
                                 className="message-data"
                               >
-                                <span className="message-data-time">
-                                  10:10 AM, Today
-                                </span>
+                                {/* <span className="message-data-time">
+                                  {getTIme(e.time??e.sent)}
+                                </span> */}
                               </div>
                               <div
                                 className={
